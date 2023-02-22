@@ -1,0 +1,99 @@
+## Terms:
+- Elastic Beanstalk: orchestration and deployment service
+
+
+
+## Missed:
+- Serverless pattern with api gateway + lambda; postgres with user/pass for lambda -> rds. Want better security and short lived creds
+  - IAM auth for lambda -> rds
+  - attach IAM role to lambda
+  - Retrieving from SSM possible but overkill
+- Website on Beanstalk, app takes too long to install, generates static and dynamic content on startup
+  - Create an AMI with static content setup
+  - EC2 user data (boot script) to improve dynamic installation on startup
+- ALB with perf issues, want microservices instead of monolith and different target groups with different URLs(a.name.com, b.name.com, c.name2.com)
+  - SSL certs with SNI (Server Name Indication)
+    - allows routing based on request and available certs
+- Manage 1TB uploads
+  - use multipart upload to S3
+  - come on dude why second guess this one
+  - RIP
+  - Snowball is too big league for baby 1TB uploads
+- What can Cloudfront do
+  - route multiple origins by content type
+  - field level encryption
+  - create origin group with primary and secondary origins for failover
+  - CANNOT use KMS
+- What resource based policy does IAM support?
+  - Trust policy
+    - define what "entities" (accounts, users, roles, etc) can use this role
+    - handles resource based management, whereas IAM roles handle identity based
+- System that stores GPS coordinates, needs NoSQL DB
+  - Dynamo obviously
+  - You second guessed again
+  - What is Neptune:
+    - graph DB for high performance relationship based data
+- Image and thumbnail upload to S3. Images frequently accessed for 45 days, thumbnails frequent for 180. Must be highly available
+  - images: 45 day lifecycle policy with prefix to standard IA
+    - can't use one zone IA cause "highly available"
+  - transition all to Glacier after 180 days
+- Using site-to-site VPN for cloud to on premise center. Maximize VPN throughput
+  - Add transit gateway and more VPN tunnels
+- Custom VPC to isolate resources. Have public subnet and IGW, but cannot reach EC2 with Elastic IPs
+  - check route table
+  - check security groups
+- Batch jobs on RDS, ~2K records need sequential processing, custom scripting
+  - EC2
+  - Glue cannot use custom scripts
+- Want security from Redis to Lambda
+  - Redis has its own auth
+- 1PB of data, One time copy from region to region. No snowball
+  - AWS S3 sync
+  - S3 batch replication
+    - (also supports live replication)
+- Stream log file updates from S3 to Kinesis Data Streams
+  - Use?? Database Migration Service???
+  - EventBridge is wrong cause that handles Cloudtrail triggers
+- Complex query handling
+  - Neptune (see above question)
+- Dynamo for storage, no night traffic and unpredictable day traffic
+  - Set in on-demand capacity mode
+    - Other (incorrect) option is provisioned capacity
+- RDS DB strings needed in servers, auto rotate credentials
+  - Secrets Manager
+  - SSM Parameter Store / KMS / Systems Manager cannot rotate creds
+- DB in private subnet, uses KMS for data at rest. How securely send data
+  - SSL for data in transit through RDS
+- Orchestration for API via docker containers
+  - ECS with Fargate
+  - EKS with Fargate
+  - EC2 isn't serverless
+- ELB marks all instances in group as unhealthy. Why's
+  - Health check misconfigured
+  - Security group traffic issue
+- How figure out what's happening in AWS without editing creds
+  - Cloudtrail
+    - to analyze API calls in an AWS account
+  - S3 access logs
+    - Also provides this info, but Cloudtrail is recommended
+- Move data on physical tapes to cloud
+  - Tape Gateway, it wasn't a trick that's actually the fucking name
+- Migrating to serverless with Lambda, which are true
+  - Lambda functions run from AWS VPC and have access to public internet. NAT Gateway must be set up for another VPC
+  - Lambda layer for reusable code
+- Disaster Recovery with minimum cost, few minutes data loss ok
+  - Pilot Light
+- SaaS app for updates to other apps, need to async decouple the architecture
+  - EventBridge
+    - Specifically good for 3rd party SaaS
+  - SNS also works
+- ALBs in multiple regions, inconsistent traffic, need IP routing through on-premises firewall
+  - Global Accelerator, connect ALBs by region, and configure firewall for GA's static IP
+  - NLB cannot be used to orchestrate, is region bound
+- Async job to compress and return images, quick scaling and retries
+  - SQS + Spot instances
+  - Spot cheaper than reserved or on demand since workloads are variable
+
+
+
+
